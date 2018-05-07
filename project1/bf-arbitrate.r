@@ -106,7 +106,13 @@ bf.find <- function(graph, summary) {
     return(ret)
 }
 
-bf.spfa <- function(graph, summary) {
+bf.spfa <- function(graph, summary, SLF=F) {
+
+    # This implementation improves upon the traditional Bellman-Ford algorithm:
+    #  - Nodes are only explored if edges connecting to it could be relaxed in
+    #    the previous step, severely improving average case runs
+    #  - Small Label First induces exploration of closer nodes first, improving
+    #    further even the average case performance
 
     # ready data
     edges = as.matrix(graph)
@@ -154,6 +160,11 @@ bf.spfa <- function(graph, summary) {
                 # add to queue (only once)
                 if (sum(Q==neighbor) == 0) {
                     Q = c(Q, neighbor)
+
+                    # >>> Optimization: SLF <<<
+                    if ((SLF) & (dists[neighbor] < dists[Q[1]])) {
+                        Q = c(neighbor, Q[1:(NROW(Q)-1)])
+                    }
                 }
             }
 
