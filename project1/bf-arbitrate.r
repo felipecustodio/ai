@@ -56,7 +56,8 @@ bf.find <- function(graph, summary) {
     dists = rep(Inf, NROW(nodes))
     prevs = rep(NULL, NROW(nodes))
 
-    # always start at artificial node
+    # distance from source is zero
+    # source is always the artificial node
     dists[1] = 0
 
     cat("relaxing weights...\n")
@@ -73,25 +74,24 @@ bf.find <- function(graph, summary) {
     }
 
     # test for negative cycles
-    negative.cycle = NULL
+    cycle = NULL
     for (i in 1:NROW(edges)) {
 
         # a path with NROW(nodes) steps can only occur via a negative cycle
         if (dists[which(nodes==edges[i,1])] + weights[i] < dists[which(nodes==edges[i,2])]) {
-            cat("found negative cycle containing edge (", edges[i,1], ", ", edges[i,2], "):\n")
-            negative.cycle = bf.path(nodes, prevs, edges[i,1])
-            print(negative.cycle)
+            cycle = bf.path(nodes, prevs, edges[i,1])
+            cat("the following arbitrage is possible:\n")
+            print(cycle)
             break
         }
     }
 
     # then find possible profit
-    possible.profit = NULL
-    if (NROW(negative.cycle) > 0) {
-        cat("possible profit from arbitrage: \n")
+    profit = NULL
+    if (NROW(cycle) > 0) {
         rates = as.numeric(as.character(summary[,3]))
-        possible.profit = bf.mult(edges, rates, negative.cycle)
-        print(possible.profit)
+        profit = bf.mult(edges, rates, cycle)
+        cat("profit:", profit, "\n")
     } else {
         cat("no negative cycles found")
     }
@@ -100,7 +100,47 @@ bf.find <- function(graph, summary) {
     ret$nodes = nodes
     ret$dists = dists
     ret$prevs = prevs
-    ret$cycle = negative.cycle
-    ret$profit = possible.profit
+    ret$cycle = cycle
+    ret$profit = profit
     return(ret)
+}
+
+bf.spfa <- function(graph, summary) {
+
+    # ready data
+    edges = as.matrix(graph)
+    nodes = unique(matrix(edges[,1:2], ncol=1))
+    weights = as.numeric(as.character(edges[,3]))
+
+    # ready state
+    dists = rep(Inf, NROW(nodes))
+    prevs = rep(NULL, NROW(nodes))
+
+    # distance from source is zero
+    # source is always the artificial node
+    dists[1] = 0
+
+    # add source to queue
+    Q = c(1)
+
+    while (NROW(Q) > 0) {
+
+        # randomly retract a node the from queue
+        node = as.numeric(sample(Q, NROW(Q), 1))
+        Q = Q[-which(Q==node)]
+
+        # separate it's neighbors
+        neighbors.edges = edges[which(edges[1,]==nodes[node]),]
+        neighbors.nodes = neighbors.edges[,2]
+
+        for (i in 1:NROW(neighbors.nodes)) {
+
+            # TODO HERE
+            # TODO HERE
+            # TODO HERE
+            # TODO HERE
+            # TODO HERE
+        }
+
+    }
 }

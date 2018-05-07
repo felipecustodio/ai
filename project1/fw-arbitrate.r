@@ -91,6 +91,7 @@ fw.find <- function(graph, summary) {
 
     # check for cycles
     cycle = NULL
+    profit = NULL
     for (i in 1:NROW(nodes)) {
 
         if (dists[i, i] < 0) {
