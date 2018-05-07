@@ -75,9 +75,10 @@ fw.find <- function(graph, summary) {
         dists[i, i] = 0
     }
 
+    cat("Applying Floyd-Warshall algorithm\n")
     # apply floyd-warshall
     for (k in 1:NROW(nodes)) {
-        cat("  doing all paths passing through", k, "\n")
+        cat("  computing all paths passing through node", k, "\n")
 
         for (i in 1:NROW(nodes)) {
             for (j in 1:NROW(nodes)) {
@@ -96,21 +97,20 @@ fw.find <- function(graph, summary) {
 
         if (dists[i, i] < 0) {
             # cycle path
-            cat("the following arbitrage is possible:\n")
+            cat("Arbitrage cycle found!\n")
             cycle = fw.path(nexts, i, i)
             print(nodes[cycle])
 
             # cycle mult
             rates = as.numeric(as.character(summary[,3]))
             profit = fw.mult(nodes, edges, rates, cycle)
-            cat("possible profit:", profit, "\n")
-
+            cat("Possible profit:", profit, "\n")
             break
         }
     }
 
     if (NROW(cycle) == 0) {
-        cat("no arbitrage opportunity detected :(\n")
+        cat("No negative cycles found :(\n")
     }
 
     ret = list()

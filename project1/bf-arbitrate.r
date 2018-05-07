@@ -60,9 +60,9 @@ bf.find <- function(graph, summary) {
     # source is always the artificial node
     dists[1] = 0
 
-    cat("relaxing weights...\n")
+    cat("Applying Bellman-Ford algorithm\n")
     for (i in 1:(NROW(nodes)-1)) { # this can STILL stop earlier
-        cat(" iteration: ", i, "\n")
+        cat("  exploring paths with", i, "steps away from source\n")
 
         for (j in 1:NROW(edges)) {
 
@@ -80,7 +80,7 @@ bf.find <- function(graph, summary) {
         # a path with NROW(nodes) steps can only occur via a negative cycle
         if (dists[which(nodes==edges[i,1])] + weights[i] < dists[which(nodes==edges[i,2])]) {
             cycle = bf.path(nodes, prevs, edges[i,1])
-            cat("the following arbitrage is possible:\n")
+            cat("Arbitrage cycle found!\n")
             print(cycle)
             break
         }
@@ -91,9 +91,9 @@ bf.find <- function(graph, summary) {
     if (NROW(cycle) > 0) {
         rates = as.numeric(as.character(summary[,3]))
         profit = bf.mult(edges, rates, cycle)
-        cat("possible profit:", profit, "\n")
+        cat("Possible profit:", profit, "\n")
     } else {
-        cat("no arbitrage opportunity detected :(\n")
+        cat("No negative cycles found :(\n")
     }
 
     ret = list()
@@ -134,13 +134,13 @@ bf.spfa <- function(graph, summary, SLF=F) {
     # ...also, add source to it
     Q = c(1)
 
+    cat("Applying Bellman-Ford SPFA variation\n")
     while (NROW(Q) > 0) {
+        cat("  currently exploring node", node, "\n")
 
         # get front
         node = Q[1]
         Q = Q[-which(Q==node)]
-
-        cat("  inspecting node:", node, "\n")
 
         # neighbor node edge ids
         edge.ids = which(edges[,1]==nodes[node])
@@ -189,22 +189,21 @@ bf.spfa <- function(graph, summary, SLF=F) {
         if (dists[u] + weights[i] < dists[v]) {
 
             # cycle path
-            cat("the following arbitrage is possible:\n")
             cycle = bf.path(nodes, prevs, edges[i,1])
+            cat("Arbitrage cycle found!\n")
             print(cycle)
 
             # cycle mult
             rates = as.numeric(as.character(summary[,3]))
             profit = bf.mult(edges, rates, cycle)
-            cat("possible profit:", profit, "\n")
-
+            cat("Possible profit:", profit, "\n")
             break
         }
     }
 
     # case of "failure"
     if (NROW(cycle) == 0) {
-        cat("no arbitrage opportunity detected :(")
+        cat("No negative cycles found :(\n")
     }
 
     ret = list()
