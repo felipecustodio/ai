@@ -1,3 +1,4 @@
+# MULTIPLY transaction rates in a given cycle to obtain possible profit
 fw.mult <- function(nodes, edges, rates, cycle) {
 
     profit = 1
@@ -12,6 +13,7 @@ fw.mult <- function(nodes, edges, rates, cycle) {
     return(profit)
 }
 
+# RETRIEVE a path given a predecessor array and a source/target pair of nodes
 fw.path <- function(nexts, source, target) {
 
     if(!is.numeric(source) | !is.numeric(target)) {
@@ -39,7 +41,8 @@ fw.path <- function(nexts, source, target) {
     return(path)
 }
 
-fw.find <- function(graph, summary) {
+# APPLY classic Floyd-Warshall Algorithm
+fw.find <- function(graph, summary, debug=T) {
 
     # receive graph as an EDGE LIST with the following format:
     #
@@ -75,10 +78,15 @@ fw.find <- function(graph, summary) {
         dists[i, i] = 0
     }
 
-    cat("Applying Floyd-Warshall algorithm\n")
-    # apply floyd-warshall
+    if (debug) {
+        cat("Applying Floyd-Warshall algorithm\n")
+    }
+
     for (k in 1:NROW(nodes)) {
-        cat("  computing all paths passing through node", k, "\n")
+
+        if (debug) {
+            cat("  computing all paths passing through node", k, "\n")
+        }
 
         for (i in 1:NROW(nodes)) {
             for (j in 1:NROW(nodes)) {
@@ -97,20 +105,26 @@ fw.find <- function(graph, summary) {
 
         if (dists[i, i] < 0) {
             # cycle path
-            cat("Arbitrage cycle found!\n")
             cycle = fw.path(nexts, i, i)
-            print(nodes[cycle])
 
             # cycle mult
             rates = as.numeric(as.character(summary[,3]))
             profit = fw.mult(nodes, edges, rates, cycle)
-            cat("Possible profit:", profit, "\n")
+
+            if (debug) {
+                cat("Arbitrage cycle found!\n")
+                print(nodes[cycle])
+                cat("Possible profit:", profit, "\n")
+            }
+
             break
         }
     }
 
     if (NROW(cycle) == 0) {
-        cat("No negative cycles found :(\n")
+        if (debug) {
+            cat("No negative cycles found :(\n")
+        }
     }
 
     ret = list()

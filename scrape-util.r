@@ -1,6 +1,7 @@
 scrape.btx <- function() {
 
-    require(jsonlite)
+    # fail if not installed
+    library("jsonlite")
 
     # scrape raw data
     rawdata = readLines("https://bittrex.com/api/v1.1/public/getmarketsummaries")

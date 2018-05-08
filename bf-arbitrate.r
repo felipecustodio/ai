@@ -1,3 +1,4 @@
+# MULTIPLY transaction rates in a given cycle to obtain possible profit
 bf.mult <- function(edges, rates, cycle) {
 
     profit = 1
@@ -12,6 +13,7 @@ bf.mult <- function(edges, rates, cycle) {
     return(profit)
 }
 
+# RETRIEVE a path given a predecessor array and a source/target pair of nodes
 bf.path <- function(nodes, prevs, terminal) {
 
     path = as.matrix(c(terminal))
@@ -35,7 +37,8 @@ bf.path <- function(nodes, prevs, terminal) {
     return(path)
 }
 
-bf.find <- function(graph, summary) {
+# APPLY classic Bellman-Ford Algorithm
+bf.find <- function(graph, summary, debug=T) {
 
     # receive an EDGE LIST with the following format:
     #
@@ -60,12 +63,17 @@ bf.find <- function(graph, summary) {
     # source is always the artificial node
     dists[1] = 0
 
-    cat("Applying Bellman-Ford algorithm\n")
+    if (debug) {
+        cat("Applying Bellman-Ford algorithm\n")
+    }
+
     for (i in 1:(NROW(nodes)-1)) { # this can STILL stop earlier
-        cat("  exploring paths with", i, "steps away from source\n")
+
+        if (debug) {
+            cat("  exploring paths with", i, "steps away from source\n")
+        }
 
         for (j in 1:NROW(edges)) {
-
             if (dists[which(nodes==edges[j,1])] + weights[j] < dists[which(nodes==edges[j,2])]) {
                 dists[which(nodes==edges[j,2])] = dists[which(nodes==edges[j,1])] + weights[j]
                 prevs[which(nodes==edges[j,2])] = which(nodes==edges[j,1])
@@ -80,8 +88,12 @@ bf.find <- function(graph, summary) {
         # a path with NROW(nodes) steps can only occur via a negative cycle
         if (dists[which(nodes==edges[i,1])] + weights[i] < dists[which(nodes==edges[i,2])]) {
             cycle = bf.path(nodes, prevs, edges[i,1])
-            cat("Arbitrage cycle found!\n")
-            print(cycle)
+
+            if (debug) {
+                cat("Arbitrage cycle found!\n")
+                print(cycle)
+            }
+
             break
         }
     }
@@ -91,9 +103,15 @@ bf.find <- function(graph, summary) {
     if (NROW(cycle) > 0) {
         rates = as.numeric(as.character(summary[,3]))
         profit = bf.mult(edges, rates, cycle)
-        cat("Possible profit:", profit, "\n")
+
+        if (debug) {
+            cat("Possible profit:", profit, "\n")
+        }
     } else {
-        cat("No negative cycles found :(\n")
+
+        if (debug) {
+            cat("No negative cycles found :(\n")
+        }
     }
 
     ret = list()
@@ -104,7 +122,8 @@ bf.find <- function(graph, summary) {
     return(ret)
 }
 
-bf.spfa <- function(graph, summary, SLF=F) {
+# APPLY Bellman-Ford SPFA variation algorithm
+bf.spfa <- function(graph, summary, SLF=F, debug=T) {
 
     # This implementation improves upon the traditional Bellman-Ford algorithm:
     #  - Nodes are only explored if edges connecting to it could be relaxed in
@@ -132,13 +151,18 @@ bf.spfa <- function(graph, summary, SLF=F) {
     # ...also, add source to it
     Q = c(1)
 
-    cat("Applying Bellman-Ford SPFA variation\n")
+    if (debug) {
+        cat("Applying Bellman-Ford SPFA variation\n")
+    }
+
     while (NROW(Q) > 0) {
         # get front
         node = Q[1]
         Q = Q[-which(Q==node)]
 
-        cat("  currently exploring node", node, "\n")
+        if (debug) {
+            cat("  currently exploring node", node, "\n")
+        }
 
         # neighbor node edge ids
         edge.ids = which(edges[,1]==nodes[node])
@@ -165,7 +189,6 @@ bf.spfa <- function(graph, summary, SLF=F) {
                     }
                 }
             }
-
         }
 
         # necessary for worst case
@@ -188,20 +211,26 @@ bf.spfa <- function(graph, summary, SLF=F) {
 
             # cycle path
             cycle = bf.path(nodes, prevs, edges[i,1])
-            cat("Arbitrage cycle found!\n")
-            print(cycle)
 
             # cycle mult
             rates = as.numeric(as.character(summary[,3]))
             profit = bf.mult(edges, rates, cycle)
-            cat("Possible profit:", profit, "\n")
+
+            if (debug) {
+                cat("Arbitrage cycle found!\n")
+                print(cycle)
+                cat("Possible profit:", profit, "\n")
+            }
+
             break
         }
     }
 
     # case of "failure"
     if (NROW(cycle) == 0) {
-        cat("No negative cycles found :(\n")
+        if (debug) {
+            cat("No negative cycles found :(\n")
+        }
     }
 
     ret = list()
