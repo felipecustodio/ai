@@ -33,7 +33,7 @@ fw.path <- function(nexts, source, target) {
     }
 
     # do last step
-    path = c(path, target)
+    path = as.matrix(c(path, target))
 
     # as vector
     return(path)
@@ -115,7 +115,6 @@ fw.find <- function(graph, summary) {
 
     ret = list()
     ret$nodes = nodes
-    ret$dists = dists
     ret$cycle = cycle
     ret$profit = profit
 

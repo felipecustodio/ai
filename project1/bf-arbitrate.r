@@ -98,8 +98,6 @@ bf.find <- function(graph, summary) {
 
     ret = list()
     ret$nodes = nodes
-    ret$dists = dists
-    ret$prevs = prevs
     ret$cycle = cycle
     ret$profit = profit
 
@@ -136,11 +134,11 @@ bf.spfa <- function(graph, summary, SLF=F) {
 
     cat("Applying Bellman-Ford SPFA variation\n")
     while (NROW(Q) > 0) {
-        cat("  currently exploring node", node, "\n")
-
         # get front
         node = Q[1]
         Q = Q[-which(Q==node)]
+
+        cat("  currently exploring node", node, "\n")
 
         # neighbor node edge ids
         edge.ids = which(edges[,1]==nodes[node])
@@ -208,8 +206,6 @@ bf.spfa <- function(graph, summary, SLF=F) {
 
     ret = list()
     ret$nodes = nodes
-    ret$dists = dists
-    ret$prevs = prevs
     ret$cycle = cycle
     ret$profit = profit
 
