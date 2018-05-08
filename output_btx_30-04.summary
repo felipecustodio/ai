@@ -1,0 +1,103 @@
+Benchmarking Floyd-Warshall
+
+    Execution 1: 4.22491264343262 seconds
+
+    Execution 2: 4.23252892494202 seconds
+
+    Execution 3: 3.43776631355286 seconds
+
+    Execution 4: 2.85516905784607 seconds
+
+    Execution 5: 2.77812385559082 seconds
+
+    Execution 6: 4.07219958305359 seconds
+
+    Execution 7: 4.28757691383362 seconds
+
+    Execution 8: 4.54453039169312 seconds
+
+    Execution 9: 2.83027625083923 seconds
+
+    Execution 10: 2.85450530052185 seconds
+
+    Execution 11: 3.48453974723816 seconds
+
+    Execution 12: 4.42534446716309 seconds
+
+    Execution 13: 3.51453447341919 seconds
+
+    Execution 14: 2.84549403190613 seconds
+
+    Execution 15: 2.82857441902161 seconds
+
+Benchmarking Bellman-Ford
+
+    Execution 1: 1.43863129615784 seconds
+
+    Execution 2: 1.39800691604614 seconds
+
+    Execution 3: 1.39653706550598 seconds
+
+    Execution 4: 1.4148964881897 seconds
+
+    Execution 5: 1.47274875640869 seconds
+
+    Execution 6: 1.40682744979858 seconds
+
+    Execution 7: 1.37583589553833 seconds
+
+    Execution 8: 1.37182974815369 seconds
+
+    Execution 9: 1.39488172531128 seconds
+
+    Execution 10: 1.38729000091553 seconds
+
+    Execution 11: 1.4386157989502 seconds
+
+    Execution 12: 1.38660717010498 seconds
+
+    Execution 13: 1.40750885009766 seconds
+
+    Execution 14: 1.40742182731628 seconds
+
+    Execution 15: 1.40396618843079 seconds
+
+Benchmarking SPFA
+
+    Execution 1: 0.0479738712310791 seconds
+
+    Execution 2: 0.00750398635864258 seconds
+
+    Execution 3: 0.00743365287780762 seconds
+
+    Execution 4: 0.0103626251220703 seconds
+
+    Execution 5: 0.00742793083190918 seconds
+
+    Execution 6: 0.00738811492919922 seconds
+
+    Execution 7: 0.00737881660461426 seconds
+
+    Execution 8: 0.00930047035217285 seconds
+
+    Execution 9: 0.0126607418060303 seconds
+
+    Execution 10: 0.00752854347229004 seconds
+
+    Execution 11: 0.00737237930297852 seconds
+
+    Execution 12: 0.00746631622314453 seconds
+
+    Execution 13: 0.0072932243347168 seconds
+
+    Execution 14: 0.00739479064941406 seconds
+
+    Execution 15: 0.0112628936767578 seconds
+
+
+Average times and standard deviations:
+
+                     Mean         SD
+Floyd-Warshall 3.54773842 0.68704999
+Bellman-Ford   1.40677368 0.02638175
+SPFA           0.01104989 0.01035597
