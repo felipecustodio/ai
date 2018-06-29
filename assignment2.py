@@ -11,6 +11,8 @@ import math
 import numpy as np
 from math import sqrt
 
+from heapq import nlargest
+
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import linear_kernel
 
@@ -38,8 +40,6 @@ def fbc_knn(biggest_rated, movie_reviews, movies_data):
     tf = TfidfVectorizer(analyzer='word', ngram_range=(1,3), min_df = 0, stop_words = 'english')
     tfidf_matrix = tf.fit_transform([review for index, review in enumerate(corpus)])
 
-    # print(tfidf_matrix)
-
     # calculate vector of similarities for each of the movies from the first recommender
     # recommend the most similar for each one for the user
     most_similar = []
@@ -53,6 +53,34 @@ def fbc_knn(biggest_rated, movie_reviews, movies_data):
     print("\n\nRecommended movies for you:")
     for movie in most_similar:
         print("* " + movies_data['title'][movie[0][0]-1])
+
+
+###########
+# RF-REC #
+###########
+def RF_Rec(ratings, user, item):
+    # get all user and item ratings
+    user_ratings = ratings[user]
+    item_ratings = ratings[:, item]
+    # initialize frequencies + 1
+    frequencies_user = [1, 1, 1, 1, 1]
+    frequencies_item = [1, 1, 1, 1, 1]
+    rui = [0, 0, 0, 0, 0]
+    # get frequency of all possible ratings
+    # by user 'user' and by item 'item'
+    for i in range(1, 6):
+        for rating in user_ratings:
+            if (rating == i):
+                frequencies_user[i-1] += 1
+        for rating in item_ratings:
+            if (rating == i):
+                frequencies_item[i-1] += 1
+        # rating frequency = frequency that user gave
+        # that rating * frequency that item was given that rating
+        rui[i-1] = frequencies_user[i-1] * frequencies_item[i-1]
+    # pred = arg max freq(user) x freq(item)
+    prediction = rui.index(max(rui)) + 1
+    return prediction
 
 
 ##############################
@@ -77,7 +105,7 @@ def bias_item(ratings, item, global_avg):
         Ri += 1
     if (Ri == 0):
         # no other ratings for this item
-        bias = global_avg
+        bias = -1
     else:
         bias = bias / abs(Ri)
     return bias
@@ -94,7 +122,7 @@ def bias_user(ratings, user, global_avg):
             Ru += 1
     if (Ru == 0):
         # no other items were rated
-        bias = global_avg
+        bias = -1
     else:
         bias = bias / abs(Ru)
     return bias
@@ -107,7 +135,7 @@ def baseline(bu, bi, global_avg):
 
 def main():
 
-    print("WELCOME TO ZEPHYROS.")
+    print("WELCOME TO ZEPHYRUS.")
     # choose user to recommend movies to
     print("\nChoose user (ID): ", end="")
     user = int(input())
@@ -123,7 +151,7 @@ def main():
     n_items = movies_data['movie_id'].max()
 
     # generate (user x movie) ratings matrix
-    print("Generating user x movie ratings matrix...")
+    print("\nGenerating user x movie ratings matrix...")
     ratings = np.full((n_users, n_items), 0)
     for row in train_data.itertuples():
         user_id = getattr(row, "user_id")
@@ -132,37 +160,45 @@ def main():
         ratings[user_id-1][movie-1] = rating
 
     # calculate biases
-    print("\nCalculating biases...")
-    global_avg = global_average(ratings)
-    bu = bias_user(ratings, user, global_avg)
-    bi = []
-    with progressbar.ProgressBar(max_value=n_items) as bar:
-        for i in range(n_items):
-            bi.append(bias_item(ratings, i, global_avg))
-            bar.update(i)
+    # print("Calculating biases...")
+    # global_avg = global_average(ratings)
+    # print("Global Average: {}".format(global_avg))
+    # bu = bias_user(ratings, user, global_avg)
+    # print("Bias User: {}".format(bu))
+    # bi = []
+    # print("Calculating biases for every item...")
+    # with progressbar.ProgressBar(max_value=n_items) as bar:
+    #     for i in range(n_items):
+    #         bi.append(bias_item(ratings, i, global_avg))
+    #         bar.update(i)
 
     # calculate prediction for every item for chosen user
-    print("\nPredicting ratings with Baseline...")
+    print("\nPredicting ratings with RF_Rec...")
     predictions = np.zeros(n_items)
     with progressbar.ProgressBar(max_value=n_items) as bar:
         for i in range(n_items):
-            predictions[i] = baseline(bu, bi[i], global_avg)
+            # predictions[i] = baseline(bu, bi[i], global_avg)
+            predictions[i] = RF_Rec(ratings, user, i)
             bar.update(i)
-    print(predictions)
 
     # sorting and getting top rated items
-    # sorted_predictions = predictions.argsort()[-10:][::-1]
-    sorted_predictions = sorted(range(len(predictions)), key=lambda k: predictions[k])[-10:][::-1]
+    # sorted_predictions = predictions.argsort()[:5]
+    sorted_predictions = nlargest(10, enumerate(predictions), key=lambda x: x[1])
+    print("Top 10 predictions:")
     print(sorted_predictions)
 
-    print("\nBaseline top predictions:")
-    for movie in sorted_predictions:
+    rf_rec_results = []
+    for prediction in sorted_predictions:
+        rf_rec_results.append(prediction[0])
+
+    print("\nRF_Rec results:")
+    for movie in rf_rec_results:
         title = movies_data['title'][movie]
         print("* " + title)
 
     # use these for FBC-Knn
     start = timer()
-    fbc_knn(sorted_predictions, movie_reviews, movies_data)
+    fbc_knn(rf_rec_results, movie_reviews, movies_data)
     end = timer()
     time_elapsed = end - start
     print("\nElapsed time for FBC-Knn: {}".format(time_elapsed))
