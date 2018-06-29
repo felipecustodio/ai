@@ -14,31 +14,43 @@ from math import sqrt
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import linear_kernel
 
+
 ##############################
 #        FBC-KNN             #
 ##############################
-def text_similarity(biggest_rated, movie_reviews):
+def fbc_knn(biggest_rated, movie_reviews, movies_data):
     # for each movie:
         # generate a TF/IDF vector of the terms in the movie reviews
         # calculate the cosine similarity of each movie's TF/IDF vector with every other movie's TF/IDF vector
 
-    # corpus consists of the reviews for the
-    # 20 biggest rated items from baseline
-    corpus = ["" for x in range(20)]
+    # corpus consists of all reviews
+    corpus = ["" for x in range(len(movies_data))]
 
     # concatenate movie reviews to generate corpus
-    for index, movie in enumerate(biggest_rated):
-        review = movie_reviews["text"][movie-1]
-        corpus[index] += str(review)
+    print("\nGenerating reviews corpus...")
+    for row in movie_reviews.itertuples():
+        movie = getattr(row, "movie_id")
+        review = getattr(row, "text")
+        corpus[movie-1] += str(review)
 
     # initialize vectorizer and matrix for each movie review
+    print("Generating TF-IDF vectorizer...")
     tf = TfidfVectorizer(analyzer='word', ngram_range=(1,3), min_df = 0, stop_words = 'english')
     tfidf_matrix =  tf.fit_transform([review for index, review in enumerate(corpus)])
 
+    # calculate vector of similarities for each of the movies from the first recommender
+    # recommend the most similar for each one for the user
+    most_similar = []
+    top_n = 1
+    print("Finding most similar movies...")
+    for index, movie in enumerate(biggest_rated):
+        cosine_similarities = linear_kernel(tfidf_matrix[movie:movie+1], tfidf_matrix).flatten()
+        related_docs_indices = [i for i in cosine_similarities.argsort()[::-1] if i != movie]
+        most_similar.append([(movie, cosine_similarities[movie]) for movie in related_docs_indices][0:top_n])
 
-    # cosine_similarities = linear_kernel(tfidf_matrix[index:index+1], tfidf_matrix).flatten()
-    # related_docs_indices = [i for i in cosine_similarities.argsort()[::-1] if i != index]
-    # return [(index, cosine_similarities[index]) for index in related_docs_indices][0:top_n]
+    print("\n\nRecommended movies for you:")
+    for movie in most_similar:
+        print("* " + movies_data['title'][movie[0][0]-1])
 
 
 ##############################
@@ -86,7 +98,7 @@ def bias_user(ratings, user, global_avg):
     return bias
 
 
-def baseline(ratings, user, bu, bi, item, global_avg):
+def baseline(bu, bi, global_avg):
     rui = global_avg + bi + bu
     return rui
 
@@ -126,25 +138,27 @@ def main():
             bar.update(i)
 
     # calculate prediction for every item for chosen user
-    print("Predicting ratings with Baseline...")
+    print("\nPredicting ratings with Baseline...")
     predictions = np.zeros(n_items)
     with progressbar.ProgressBar(max_value=n_items) as bar:
         for i in range(n_items):
-            predictions[i] = baseline(ratings, user, bu, bi[i], i, global_avg)
+            predictions[i] = baseline(bu, bi[i], global_avg)
             bar.update(i)
 
     # sorting and getting 20 top rated items
-    predictions = predictions.argsort()[-20:]
+    predictions = predictions.argsort()[-5:]
 
-    print("\n20 top rated items:")
+    print("\nBaseline top predictions:")
     for movie in predictions:
         title = movies_data['title'][movie-1]
         print("* " + title)
 
     # use these for FBC-Knn
-    text_similarity(predictions, movie_reviews)
-
-
+    start = timer()
+    fbc_knn(predictions, movie_reviews, movies_data)
+    end = timer()
+    time_elapsed = end - start
+    print("\nElapsed time for FBC-Knn: {}".format(time_elapsed))
 
 
 if __name__ == '__main__':
