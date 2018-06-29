@@ -10,14 +10,35 @@ import csv
 import math
 import numpy as np
 from math import sqrt
-import matplotlib.pyplot as plt
-import seaborn as sns
 
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import linear_kernel
 
 ##############################
 #        FBC-KNN             #
 ##############################
+def text_similarity(biggest_rated, movie_reviews):
+    # for each movie:
+        # generate a TF/IDF vector of the terms in the movie reviews
+        # calculate the cosine similarity of each movie's TF/IDF vector with every other movie's TF/IDF vector
 
+    # corpus consists of the reviews for the
+    # 20 biggest rated items from baseline
+    corpus = ["" for x in range(20)]
+
+    # concatenate movie reviews to generate corpus
+    for index, movie in enumerate(biggest_rated):
+        review = movie_reviews["text"][movie-1]
+        corpus[index] += str(review)
+
+    # initialize vectorizer and matrix for each movie review
+    tf = TfidfVectorizer(analyzer='word', ngram_range=(1,3), min_df = 0, stop_words = 'english')
+    tfidf_matrix =  tf.fit_transform([review for index, review in enumerate(corpus)])
+
+
+    # cosine_similarities = linear_kernel(tfidf_matrix[index:index+1], tfidf_matrix).flatten()
+    # related_docs_indices = [i for i in cosine_similarities.argsort()[::-1] if i != index]
+    # return [(index, cosine_similarities[index]) for index in related_docs_indices][0:top_n]
 
 
 ##############################
@@ -75,14 +96,15 @@ def main():
     movies_data = pandas.read_csv("csv/movies_data.csv")
     test_data = pandas.read_csv("csv/test_data.csv")
     train_data = pandas.read_csv("csv/train_data.csv")
+    movie_reviews = pandas.read_csv("csv/movie_reviews.csv")
 
     # initialize our data matrix (0 = unknown rating)
     n_users = train_data['user_id'].max()
     n_items = movies_data['movie_id'].max()
-    ratings = np.full((n_users, n_items), 0)
 
     # generate (user x movie) ratings matrix
     print("Generating user x movie ratings matrix...")
+    ratings = np.full((n_users, n_items), 0)
     for row in train_data.itertuples():
         user = getattr(row, "user_id")
         movie = getattr(row, "movie_id")
@@ -90,11 +112,11 @@ def main():
         ratings[user-1][movie-1] = rating
 
     # choose user to recommend movies to
-    print("Choose user (ID): ", end="")
+    print("\nChoose user (ID): ", end="")
     user = int(input())
 
     # calculate biases
-    print("Calculating biases...")
+    print("\nCalculating biases...")
     global_avg = global_average(ratings)
     bu = bias_user(ratings, user, global_avg)
     bi = []
@@ -114,11 +136,14 @@ def main():
     # sorting and getting 20 top rated items
     predictions = predictions.argsort()[-20:]
 
-    print("20 top rated items:")
+    print("\n20 top rated items:")
     for movie in predictions:
         title = movies_data['title'][movie-1]
+        print("* " + title)
 
     # use these for FBC-Knn
+    text_similarity(predictions, movie_reviews)
+
 
 
 
