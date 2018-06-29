@@ -36,7 +36,9 @@ def fbc_knn(biggest_rated, movie_reviews, movies_data):
     # initialize vectorizer and matrix for each movie review
     print("Generating TF-IDF vectorizer...")
     tf = TfidfVectorizer(analyzer='word', ngram_range=(1,3), min_df = 0, stop_words = 'english')
-    tfidf_matrix =  tf.fit_transform([review for index, review in enumerate(corpus)])
+    tfidf_matrix = tf.fit_transform([review for index, review in enumerate(corpus)])
+
+    # print(tfidf_matrix)
 
     # calculate vector of similarities for each of the movies from the first recommender
     # recommend the most similar for each one for the user
@@ -104,6 +106,12 @@ def baseline(bu, bi, global_avg):
 
 
 def main():
+
+    print("WELCOME TO ZEPHYROS.")
+    # choose user to recommend movies to
+    print("\nChoose user (ID): ", end="")
+    user = int(input())
+
     # read dataset
     movies_data = pandas.read_csv("csv/movies_data.csv")
     test_data = pandas.read_csv("csv/test_data.csv")
@@ -118,14 +126,10 @@ def main():
     print("Generating user x movie ratings matrix...")
     ratings = np.full((n_users, n_items), 0)
     for row in train_data.itertuples():
-        user = getattr(row, "user_id")
+        user_id = getattr(row, "user_id")
         movie = getattr(row, "movie_id")
         rating = getattr(row, "rating")
-        ratings[user-1][movie-1] = rating
-
-    # choose user to recommend movies to
-    print("\nChoose user (ID): ", end="")
-    user = int(input())
+        ratings[user_id-1][movie-1] = rating
 
     # calculate biases
     print("\nCalculating biases...")
@@ -144,18 +148,21 @@ def main():
         for i in range(n_items):
             predictions[i] = baseline(bu, bi[i], global_avg)
             bar.update(i)
+    print(predictions)
 
-    # sorting and getting 20 top rated items
-    predictions = predictions.argsort()[-5:]
+    # sorting and getting top rated items
+    # sorted_predictions = predictions.argsort()[-10:][::-1]
+    sorted_predictions = sorted(range(len(predictions)), key=lambda k: predictions[k])[-10:][::-1]
+    print(sorted_predictions)
 
     print("\nBaseline top predictions:")
-    for movie in predictions:
-        title = movies_data['title'][movie-1]
+    for movie in sorted_predictions:
+        title = movies_data['title'][movie]
         print("* " + title)
 
     # use these for FBC-Knn
     start = timer()
-    fbc_knn(predictions, movie_reviews, movies_data)
+    fbc_knn(sorted_predictions, movie_reviews, movies_data)
     end = timer()
     time_elapsed = end - start
     print("\nElapsed time for FBC-Knn: {}".format(time_elapsed))
