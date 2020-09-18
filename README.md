@@ -5,5 +5,12 @@
 
 ---
 
-# Assignment 1
-* Arbitrage
+### [Assignment 1](https://github.com/felipecustodio/ai/tree/master/assignment1)
+*   Bitcoin market arbitrage opportunity detection
+*   Solution uses shortest path graph search
+*   Written entirely in R
+
+### [Assignment 2](https://github.com/felipecustodio/ai/tree/master/assignment2)
+*   Cascade like, hybrid movie recommendation system
+*   Solution based on RF-Rec & FBC-Knn algorithms
+*   Written entirely in Python
